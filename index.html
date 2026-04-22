@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competence Camp | PDI</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="logo">
+        <i class="fas fa-chart-line"></i>
+        <span>Competence<strong>Camp</strong></span>
+    </div>
+</header>
+
+<nav class="main-nav">
+    <button class="main-tab active" onclick="openMainTab(event,'cadastro')"><i class="fas fa-user-plus"></i> Cadastro</button>
+    <button class="main-tab" onclick="openMainTab(event,'competencias')"><i class="fas fa-list-check"></i> Competências</button>
+    <button class="main-tab" onclick="openMainTab(event,'avaliacao')"><i class="fas fa-star"></i> Avaliação</button>
+    <button class="main-tab" onclick="openMainTab(event,'desenvolvimento')"><i class="fas fa-bullseye"></i> PDI & Radar</button>
+    <button class="main-tab" onclick="openMainTab(event,'matriz')"><i class="fas fa-th"></i> Matriz</button>
+    <button class="main-tab" onclick="openMainTab(event,'plano_acao')"><i class="fas fa-tasks"></i> Plano de Ação</button>
+</nav>
+
+<main class="container">
+    <div id="cadastro" class="main-content active">
+        <div class="sub-tabs">
+            <button class="sub-tab active" onclick="openSubTab(event,'cad-pessoas')">Pessoas</button>
+            <button class="sub-tab" onclick="openSubTab(event,'cad-grupos')">Times</button>
+        </div>
+        <div id="cad-pessoas" class="sub-content active">
+            <div class="grid-layout">
+                <div class="card">
+                    <h2 id="personFormTitle">Gerenciar Pessoas</h2>
+                    <input id="personName" placeholder="Nome completo *">
+                    <input id="personRole" placeholder="Cargo/Função">
+                    <input id="personManager" placeholder="Gestor Responsável">
+                    <button class="btn-primary" onclick="addPerson()">Salvar Dados</button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>Nome</th><th>Função</th><th>Gestor</th><th>Ações</th></tr></thead>
+                            <tbody id="peopleList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="cad-grupos" class="sub-content">
+            <div class="grid-layout">
+                <div class="card">
+                    <h2 id="groupFormTitle">Novo Time</h2>
+                    <input id="groupName" placeholder="Nome do time">
+                    <select id="personSelectField" onchange="addMemberToGroup(this)"></select>
+                    <div id="selectedTagsContainer" class="tags-container" style="margin: 10px 0;"></div>
+                    <button class="btn-primary" onclick="saveGroup()" style="width:100%">Registrar Time</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>Time</th><th>Integrantes</th><th>Ação</th></tr></thead>
+                        <tbody id="groupTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="competencias" class="main-content">
+        <div class="sub-tabs">
+            <button class="sub-tab active" onclick="openSubTab(event,'comp-cad')">Definições</button>
+            <button class="sub-tab" onclick="openSubTab(event,'comp-plano')">Níveis de Evolução</button>
+        </div>
+        <div id="comp-cad" class="sub-content active">
+            <div class="grid-layout">
+                <div class="card">
+                    <h2 id="skillFormTitle">Competência</h2>
+                    <input id="skillName" placeholder="Título">
+                    <textarea id="skillDescription" placeholder="Descrição base..."></textarea>
+                    <select id="skillType">
+                        <option value="Hard Skill">Hard Skill</option>
+                        <option value="Soft Skill">Soft Skill</option>
+                    </select>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; display: block;">Vincular a Times (Ctrl p/ múltiplos):</label>
+                    <select id="skillTeamSelect" multiple style="height: 100px; margin-bottom: 10px;"></select>
+                    <button class="btn-primary" onclick="addSkill()">Salvar</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead><tr><th>Nome</th><th>Tipo</th><th>Times Vinculados</th><th>Ação</th></tr></thead>
+                        <tbody id="skillsList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="comp-plano" class="sub-content">
+            <div class="grid-layout">
+                <div class="card">
+                    <h2>Configurar Regras</h2>
+                    <select id="skillPlanSelect" onchange="loadSkillPlanForm()"></select>
+                    <div id="skillPlanForm" style="display:none; margin-top:15px;">
+                        <label>Ações Nível 1 a 3</label><textarea id="planN3"></textarea>
+                        <label>Ações Nível 4 a 6</label><textarea id="planN6"></textarea>
+                        <label>Ações Nível 7 a 9</label><textarea id="planN9"></textarea>
+                        <button class="btn-primary" onclick="saveSkillPlan()" style="width:100%">Salvar Regras</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr><th>Competência</th><th>N3</th><th>N6</th><th>N9</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody id="skillPlansTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="avaliacao" class="main-content">
+        <div class="sub-tabs">
+            <button class="sub-tab active" onclick="openSubTab(event,'aval-pessoa')">Individual</button>
+            <button class="sub-tab" onclick="openSubTab(event,'aval-grupo')">Expectativa por Time</button>
+        </div>
+        <div id="aval-pessoa" class="sub-content active">
+            <div class="card">
+                <h2>Avaliar</h2>
+                <select id="evalPersonSelect" onchange="renderIndividualEvalTable()"></select>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Competência</th><th>Atual</th><th>Descrição</th><th>Target (3,6,9)</th><th>Descrição Target</th></tr>
+                        </thead>
+                        <tbody id="individualEvalBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn-primary" onclick="alert('Avaliações salvas no banco!')" style="margin-top:20px;">Finalizar</button>
+            </div>
+        </div>
+        <div id="aval-grupo" class="sub-content">
+            <div class="card">
+                <h2>Target por Time</h2>
+                <select id="evalGroupSelect" onchange="renderGroupEvalTable()"></select>
+                <div id="groupEvalContainer">
+                    <table>
+                        <thead><tr><th>Competência</th><th>Target Sugerido (3,6,9)</th><th>Descrição do Target</th></tr></thead>
+                        <tbody id="groupEvalBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="desenvolvimento" class="main-content">
+        <div class="card">
+            <h2>Radar e PDI Individual</h2>
+            <div class="filter-container">
+                <div class="filter-group">
+                    <label>Selecionar Pessoa:</label>
+                    <select id="pdiPersonSelect" onchange="renderPDIRadar()"></select>
+                </div>
+            </div>
+            <div class="pdi-layout-vertical">
+                <div class="radar-row">
+                    <canvas id="radarChart" style="max-height: 400px;"></canvas>
+                </div>
+                <div class="pdi-row">
+                    <div id="pdiActionPlan" class="action-plan-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="matriz" class="main-content">
+        <div class="card">
+            <h2>Matriz de Prontidão</h2>
+            <div class="filter-bar">
+                <input type="text" id="filterMatrixName" placeholder="Filtrar por nome..." oninput="renderMatrix()">
+                <select id="filterMatrixStatus" onchange="renderMatrix()">
+                    <option value="">Todos Status</option>
+                    <option value="OK">OK</option>
+                    <option value="GAP">GAP</option>
+                </select>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Pessoa</th><th>Comp.</th><th>Atual</th><th>Target</th><th>GAP</th><th>Status</th><th>Plano de Ação</th></tr>
+                    </thead>
+                    <tbody id="matrixBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="plano_acao" class="main-content">
+        <div class="card">
+            <h2>Plano de Ação Personalizado (GAPs)</h2>
+            <div class="filter-container">
+                <label>Pessoa:</label>
+                <select id="filterActionPlanPerson" onchange="renderActionPlanTable()"></select>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Competência (GAP)</th><th style="width: 40%;">Ações de Desenvolvimento</th><th>Data Limite</th><th>Prioridade</th></tr>
+                    </thead>
+                    <tbody id="actionPlanTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
