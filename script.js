@@ -1,11 +1,11 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyChp8ZJKP-O62y26iE7bf7KAjR1SZykwWk",
-    authDomain: "competence-camp-exp1.firebaseapp.com",
-    databaseURL: "https://competence-camp-exp1-default-rtdb.firebaseio.com",
-    projectId: "competence-camp-exp1",
-    storageBucket: "competence-camp-exp1.firebasestorage.app",
-    messagingSenderId: "534661684196",
-    appId: "1:534661684196:web:b7e46658219549d3a745f1",
+    apiKey: "AIzaSyDXNq53T2a52M31Ims7iSV_2ZhJHl7hvi0",
+    authDomain: "competence-camp-exp2.firebaseapp.com",
+    databaseURL: "https://competence-camp-exp2-default-rtdb.firebaseio.com",
+    projectId: "competence-camp-exp2",
+    storageBucket: "competence-camp-exp2.firebasestorage.app",
+    messagingSenderId: "836219510175",
+    appId: "1:836219510175:web:c9006d99b64d8ef2e831aa",
     measurementId: "G-B1Z7ZT87TW"
 };
 
